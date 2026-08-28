@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anmol More — Startup Job Agent</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0C0E14;
+    --surface: #141720;
+    --surface2: #1C2030;
+    --border: #252A3A;
+    --accent: #5B6FFF;
+    --accent2: #00D4AA;
+    --accent3: #FF6B6B;
+    --text: #E8EAEF;
+    --text2: #8B91A8;
+    --text3: #5A6080;
+    --tag-bg: #1A2040;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Space Grotesk', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  header {
+    padding: 16px 28px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px; background: var(--surface);
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .header-text h1 { font-size: 16px; font-weight: 600; }
+  .header-text p { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+  .header-badge {
+    margin-left: auto; background: rgba(0,212,170,0.1); border: 1px solid rgba(0,212,170,0.3);
+    color: var(--accent2); font-size: 11px; padding: 4px 12px; border-radius: 20px;
+    font-family: 'JetBrains Mono', monospace; font-weight: 600;
+  }
+
+  .layout { display: grid; grid-template-columns: 300px 1fr; min-height: calc(100vh - 69px); }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--surface); border-right: 1px solid var(--border);
+    padding: 20px; display: flex; flex-direction: column; gap: 18px;
+    overflow-y: auto; max-height: calc(100vh - 69px);
+  }
+
+  /* PROFILE CARD */
+  .profile-card {
+    background: linear-gradient(135deg, rgba(91,111,255,0.1), rgba(0,212,170,0.06));
+    border: 1px solid rgba(91,111,255,0.25); border-radius: 12px; padding: 16px;
+  }
+  .profile-name { font-size: 16px; font-weight: 700; margin-bottom: 3px; }
+  .profile-title { font-size: 11px; color: var(--accent2); font-weight: 500; margin-bottom: 10px; line-height: 1.4; }
+  .profile-stat { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--text2); margin-bottom: 5px; }
+  .profile-stat span { color: var(--text); font-weight: 500; }
+
+  .section-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text3); margin-bottom: 8px;
+  }
+
+  .skill-cloud { display: flex; flex-wrap: wrap; gap: 5px; }
+  .skill-pill {
+    font-size: 11px; padding: 3px 9px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; cursor: default;
+  }
+  .skill-pill.core { background: rgba(91,111,255,0.15); color: var(--accent); border: 1px solid rgba(91,111,255,0.3); }
+  .skill-pill.cloud { background: rgba(0,212,170,0.12); color: var(--accent2); border: 1px solid rgba(0,212,170,0.25); }
+  .skill-pill.ml { background: rgba(255,107,107,0.1); color: #FF8E8E; border: 1px solid rgba(255,107,107,0.25); }
+  .skill-pill.other { background: var(--surface2); color: var(--text3); border: 1px solid var(--border); }
+
+  .section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; }
+
+  .tag-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    padding: 5px 10px; border-radius: 20px; font-size: 12px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--tag-bg); color: var(--text2);
+    transition: all 0.15s; user-select: none;
+  }
+  .tag.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tag:hover:not(.selected) { border-color: var(--accent); color: var(--text); }
+
+  .search-btn {
+    width: 100%; padding: 13px;
+    background: linear-gradient(135deg, var(--accent), #7B8FFF);
+    border: none; border-radius: 10px; color: #fff;
+    font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: opacity 0.2s, transform 0.1s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .search-btn:hover { opacity: 0.9; }
+  .search-btn:active { transform: scale(0.98); }
+  .search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* MAIN */
+  .main { padding: 22px 26px; overflow-y: auto; max-height: calc(100vh - 69px); }
+
+  .status-bar {
+    display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    font-size: 12px; color: var(--text2); margin-bottom: 18px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text3); flex-shrink: 0; }
+  .dot.green { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); animation: pulse 2s infinite; }
+  .dot.blue { background: var(--accent); box-shadow: 0 0 6px var(--accent); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* FILTERS ROW */
+  .filters-row {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px;
+    padding: 14px 16px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px; align-items: center;
+  }
+  .filter-label { font-size: 11px; color: var(--text3); font-weight: 600; white-space: nowrap; }
+  .filter-sep { width: 1px; height: 20px; background: var(--border); }
+
+  .agent-log {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 18px; font-size: 11px;
+    font-family: 'JetBrains Mono', monospace; color: var(--text2);
+    max-height: 120px; overflow-y: auto; display: none;
+  }
+  .agent-log.visible { display: block; }
+  .log-line { margin-bottom: 3px; line-height: 1.5; }
+  .log-line.step { color: var(--accent2); }
+  .log-line.found { color: var(--accent); }
+  .log-line.warn { color: #FFB347; }
+
+  .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .results-count { font-size: 13px; color: var(--text2); }
+  .results-summary { font-size: 11px; color: var(--text3); font-style: italic; }
+
+  .jobs-grid { display: flex; flex-direction: column; gap: 13px; }
+
+  .job-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px; transition: border-color 0.2s, transform 0.15s;
+    position: relative; overflow: hidden;
+  }
+  .job-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--card-accent, var(--border));
+  }
+  .job-card:hover { border-color: rgba(91,111,255,0.4); transform: translateX(3px); }
+
+  .job-card-top { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+  .company-logo {
+    width: 44px; height: 44px; border-radius: 10px; background: var(--surface2);
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+    flex-shrink: 0; border: 1px solid var(--border);
+  }
+  .job-info { flex: 1; }
+  .job-title { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+  .company-row { display: flex; align-items: center; gap: 8px; }
+  .company-name { font-size: 13px; color: var(--accent2); font-weight: 500; }
+  .company-stage { font-size: 10px; color: var(--text3); padding: 2px 7px; background: var(--surface2); border-radius: 4px; border: 1px solid var(--border); }
+
+  .match-badge { font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 20px; white-space: nowrap; font-family: 'JetBrains Mono', monospace; text-align: center; }
+  .match-score-label { font-size: 9px; font-weight: 400; display: block; opacity: 0.7; margin-top: 1px; }
+
+  .job-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .meta-chip { font-size: 11px; padding: 3px 9px; border-radius: 6px; background: var(--surface2); color: var(--text2); display: flex; align-items: center; gap: 4px; border: 1px solid var(--border); }
+
+  .job-summary { font-size: 13px; color: var(--text2); line-height: 1.65; margin-bottom: 11px; }
+
+  .why-match {
+    background: rgba(91,111,255,0.06); border: 1px solid rgba(91,111,255,0.15);
+    border-radius: 8px; padding: 10px 12px; margin-bottom: 11px;
+    font-size: 12px; color: var(--text2); line-height: 1.6;
+  }
+  .why-match strong { color: var(--accent); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 4px; }
+
+  .skill-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+  .skill-tag { font-size: 11px; padding: 3px 8px; border-radius: 5px; font-family: 'JetBrains Mono', monospace; }
+  .skill-tag.match { background: rgba(91,111,255,0.15); color: var(--accent); border: 1px solid rgba(91,111,255,0.3); }
+  .skill-tag.gap { background: rgba(255,107,107,0.1); color: #FF8E8E; border: 1px solid rgba(255,107,107,0.2); }
+
+  .job-card-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .salary-tag { font-size: 13px; color: var(--accent2); font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .btn-group { display: flex; gap: 8px; }
+  .apply-btn { padding: 7px 16px; background: var(--accent); border: none; color: #fff; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Space Grotesk', sans-serif; transition: opacity 0.2s; }
+  .apply-btn:hover { opacity: 0.85; }
+  .save-btn { padding: 7px 12px; background: transparent; border: 1px solid var(--border); color: var(--text3); border-radius: 8px; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+  .save-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .empty-state { text-align: center; padding: 60px 40px; color: var(--text3); }
+  .empty-state .icon { font-size: 44px; margin-bottom: 14px; }
+  .empty-state h3 { font-size: 17px; color: var(--text2); margin-bottom: 7px; }
+  .empty-state p { font-size: 13px; line-height: 1.6; max-width: 380px; margin: 0 auto; }
+
+  .skeleton { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+  .skeleton-line { background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; margin-bottom: 8px; }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+  .tab-bar { display: flex; gap: 4px; margin-bottom: 18px; }
+  .tab { padding: 7px 16px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--surface2); color: var(--text2); transition: all 0.15s; }
+  .tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .saved-empty { text-align: center; padding: 40px; color: var(--text3); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">🚀</div>
+  <div class="header-text">
+    <h1>Anmol More — Startup Job Agent</h1>
+    <p>Personalized for: Co-founder · Ex-Synopsys Senior Staff Engineer · 15+ yrs ML/Cloud/Backend</p>
+  </div>
+  <div class="header-badge">✓ Resume Loaded</div>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- Profile Card -->
+    <div class="profile-card">
+      <div class="profile-name">Anmol More</div>
+      <div class="profile-title">Co-founder, Adrija Labs · Ex-Synopsys Senior Staff Engineer</div>
+      <div class="profile-stat">🎓 <span>ISB Silver Medalist</span> · Business Analytics</div>
+      <div class="profile-stat">📍 <span>Bengaluru, India</span></div>
+      <div class="profile-stat">⏱ <span>15+ years</span> · Cloud, ML, Backend Dev</div>
+      <div class="profile-stat">🏆 <span>Healthtech</span> startup (Tagnos · $6.5M Series A)</div>
+    </div>
+
+    <!-- Core Skills -->
+    <div>
+      <div class="section-label">Your Key Skills</div>
+      <div class="skill-cloud">
+        <span class="skill-pill core">Python</span>
+        <span class="skill-pill core">GenAI / RAG</span>
+        <span class="skill-pill core">MLOps</span>
+        <span class="skill-pill core">Backend APIs</span>
+        <span class="skill-pill cloud">AWS</span>
+        <span class="skill-pill cloud">GCP</span>
+        <span class="skill-pill cloud">Kubernetes</span>
+        <span class="skill-pill cloud">Docker</span>
+        <span class="skill-pill ml">ML / TensorFlow</span>
+        <span class="skill-pill ml">Computer Vision</span>
+        <span class="skill-pill ml">MLFlow</span>
+        <span class="skill-pill ml">Vertex AI</span>
+        <span class="skill-pill other">Graph DB</span>
+        <span class="skill-pill other">NoSQL</span>
+        <span class="skill-pill other">DuckDB</span>
+        <span class="skill-pill other">HL7 / EHR</span>
+      </div>
+    </div>
+
+    <!-- Role Filter -->
+    <div>
+      <div class="section-label">Role Focus</div>
+      <div class="tag-grid" id="roleTags">
+        <div class="tag selected" data-val="ml-engineer">ML Engineer</div>
+        <div class="tag selected" data-val="ai-lead">AI/GenAI Lead</div>
+        <div class="tag" data-val="founding-engineer">Founding Engineer</div>
+        <div class="tag" data-val="cto">CTO / VP Eng</div>
+        <div class="tag" data-val="backend">Backend Lead</div>
+        <div class="tag" data-val="mlops">MLOps Engineer</div>
+        <div class="tag" data-val="data-science">Data Science Lead</div>
+        <div class="tag" data-val="product">Technical PM</div>
+      </div>
+    </div>
+
+    <!-- Stage Filter -->
+    <div>
+      <div class="section-label">Startup Stage</div>
+      <div class="tag-grid" id="stageTags">
+        <div class="tag selected" data-val="seed">Seed</div>
+        <div class="tag selected" data-val="series-a">Series A</div>
+        <div class="tag selected" data-val="series-b">Series B</div>
+        <div class="tag" data-val="series-c">Series C+</div>
+      </div>
+    </div>
+
+    <!-- Domain Filter -->
+    <div>
+      <div class="section-label">Domain / Sector</div>
+      <div class="tag-grid" id="domainTags">
+        <div class="tag selected" data-val="healthtech">Healthtech</div>
+        <div class="tag selected" data-val="ai-ml">AI / ML Platform</div>
+        <div class="tag" data-val="fintech">Fintech</div>
+        <div class="tag" data-val="devtools">Dev Tools</div>
+        <div class="tag" data-val="saas">B2B SaaS</div>
+        <div class="tag" data-val="edtech">Edtech</div>
+        <div class="tag" data-val="data-infra">Data Infrastructure</div>
+      </div>
+    </div>
+
+    <!-- Location -->
+    <div>
+      <div class="section-label">Location</div>
+      <div class="tag-grid" id="locationTags">
+        <div class="tag selected" data-val="bengaluru">Bengaluru</div>
+        <div class="tag selected" data-val="remote">Remote</div>
+        <div class="tag" data-val="hyderabad">Hyderabad</div>
+        <div class="tag" data-val="mumbai">Mumbai</div>
+        <div class="tag" data-val="delhi">Delhi NCR</div>
+      </div>
+    </div>
+
+    <button class="search-btn" id="searchBtn" onclick="startSearch()">
+      <span>⚡</span> Find Matching Jobs
+    </button>
+
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="status-bar">
+      <div class="dot green" id="statusDot"></div>
+      <span id="statusText">Resume loaded — Anmol More · 15+ yrs ML/Cloud · ISB · Bengaluru. Click "Find Matching Jobs" to search.</span>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab active" onclick="switchTab('matches')">🎯 Job Matches</div>
+      <div class="tab" onclick="switchTab('saved')">🔖 Saved (<span id="savedCount">0</span>)</div>
+    </div>
+
+    <div class="agent-log" id="agentLog"></div>
+
+    <div id="matchesTab">
+      <div id="resultsArea">
+        <div class="empty-state">
+          <div class="icon">⚡</div>
+          <h3>Ready to find your perfect startup role</h3>
+          <p>Your profile is pre-loaded from your resume. Select your preferred roles, startup stages, and domains — then hit <strong style="color:var(--accent)">Find Matching Jobs</strong>.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="savedTab" style="display:none">
+      <div class="saved-empty" id="savedEmpty">No saved jobs yet. Click 🔖 on any job card to save it.</div>
+      <div class="jobs-grid" id="savedGrid"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── Profile (pre-loaded from Anmol's resume) ──────────────────────────────────
+const ANMOL_PROFILE = {
+  name: "Anmol More",
+  currentRole: "Co-founder, Adrija Labs",
+  totalExperience: "15+ years",
+  education: "ISB Silver Medalist · B.Tech CUSAT",
+  summary: "Co-founder at Adrija Labs, ex-Senior Staff Engineer at Synopsys (3.5 yrs). Principal Engineer at Tagnos (healthtech startup, $6.5M Series A, 5.5 yrs). 15+ years in ML, cloud infrastructure, backend APIs, and GenAI. ISB Silver Medalist in Business Analytics.",
+  topSkills: ["Python", "GenAI/RAG", "MLOps", "Kubernetes", "AWS", "GCP", "Machine Learning", "Computer Vision", "Backend APIs", "Graph Databases"],
+  skills: ["Python", "Java", "GCP", "AWS", "Azure", "Docker", "Kubernetes", "RAG", "MLFlow", "TensorFlow", "Vertex AI", "SageMaker", "DuckDB", "ArangoDB", "PostgreSQL", "BigQuery", "Snowflake", "Kubeflow", "pySpark", "HL7", "Salesforce Health Cloud", "EPIC", "Node.js"],
+  domains: ["Healthtech", "EDA/Chip Design", "GenAI", "MLOps", "Cloud Infrastructure", "EdTech"],
+  companies: ["Adrija Labs", "Synopsys", "Tagnos (Sonitor)", "Pegasystems", "Oracle"],
+  achievements: [
+    "Saved $0.5M+ per hospital via OR surgery duration ML prediction at Tagnos",
+    "ISB Silver Medal, Dean's List, Best Capstone Project",
+    "Built MLOps platform on Kubernetes with Kubeflow, MLFlow, KServe at Synopsys",
+    "COVID-19 contact tracing at 10k pings/sec on GCP/AWS",
+    "Q1 2026 Recognition Award for Intel analytics deployment at Synopsys",
+    "IEEE paper published (cited 16 times)",
+    "Teaching AI/ML at University of Texas (4.8/5 rating)"
+  ],
+  location: "Bengaluru, India"
+};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let savedJobs = [];
+let currentJobs = [];
+
+// ── Tab Switching ─────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0) === (tab==='matches')));
+  document.getElementById('matchesTab').style.display = tab === 'matches' ? '' : 'none';
+  document.getElementById('savedTab').style.display = tab === 'saved' ? '' : 'none';
+}
+
+// ── Tag Selection ─────────────────────────────────────────────────────────────
+document.querySelectorAll('.tag-grid').forEach(grid => {
+  grid.querySelectorAll('.tag').forEach(tag => {
+    tag.addEventListener('click', () => tag.classList.toggle('selected'));
+  });
+});
+function getSelected(id) { return [...document.querySelectorAll(`#${id} .tag.selected`)].map(t => t.dataset.val); }
+
+// ── UI Helpers ────────────────────────────────────────────────────────────────
+function setStatus(type, text) {
+  document.getElementById('statusDot').className = 'dot ' + (type === 'loading' ? 'blue' : 'green');
+  document.getElementById('statusText').textContent = text;
+}
+function addLog(text, type = 'info') {
+  const log = document.getElementById('agentLog');
+  log.classList.add('visible');
+  const d = document.createElement('div');
+  d.className = `log-line ${type}`;
+  d.textContent = `[${new Date().toLocaleTimeString('en-US',{hour12:false})}] ${text}`;
+  log.appendChild(d);
+  log.scrollTop = log.scrollHeight;
+}
+function showSkeletons() {
+  const area = document.getElementById('resultsArea');
+  area.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    area.innerHTML += `<div class="skeleton" style="margin-bottom:13px">
+      <div style="display:flex;gap:12px;margin-bottom:12px">
+        <div class="skeleton-line" style="width:44px;height:44px;border-radius:10px;flex-shrink:0"></div>
+        <div style="flex:1"><div class="skeleton-line" style="width:55%;height:16px"></div><div class="skeleton-line" style="width:35%;height:12px"></div></div>
+        <div class="skeleton-line" style="width:60px;height:36px;border-radius:10px;flex-shrink:0"></div>
+      </div>
+      <div class="skeleton-line" style="width:85%;height:12px"></div>
+      <div class="skeleton-line" style="width:70%;height:12px"></div>
+      <div class="skeleton-line" style="width:45%;height:24px;margin-top:8px;border-radius:6px"></div>
+    </div>`;
+  }
+}
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Save Job ──────────────────────────────────────────────────────────────────
+function toggleSave(jobId) {
+  const job = currentJobs.find(j => j.id === jobId);
+  if (!job) return;
+  const idx = savedJobs.findIndex(j => j.id === jobId);
+  if (idx === -1) {
+    savedJobs.push(job);
+  } else {
+    savedJobs.splice(idx, 1);
+  }
+  document.getElementById('savedCount').textContent = savedJobs.length;
+  // Update button
+  const btn = document.querySelector(`[data-saveid="${jobId}"]`);
+  if (btn) btn.textContent = savedJobs.find(j => j.id === jobId) ? '🔖 Saved' : '🔖 Save';
+  renderSaved();
+}
+function renderSaved() {
+  const grid = document.getElementById('savedGrid');
+  const empty = document.getElementById('savedEmpty');
+  empty.style.display = savedJobs.length ? 'none' : '';
+  grid.innerHTML = savedJobs.map(job => buildJobCardHtml(job, true)).join('');
+}
+
+// ── Main Search ───────────────────────────────────────────────────────────────
+async function startSearch() {
+  const roles = getSelected('roleTags');
+  const stages = getSelected('stageTags');
+  const domains = getSelected('domainTags');
+  const locations = getSelected('locationTags');
+
+  const btn = document.getElementById('searchBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span>⏳</span> Searching...';
+
+  document.getElementById('agentLog').innerHTML = '';
+  document.getElementById('agentLog').classList.remove('visible');
+  setStatus('loading', 'Agent scanning India startup ecosystem for Anmol…');
+  showSkeletons();
+
+  addLog('Profile: Anmol More · 15+ yrs · ISB · Bengaluru', 'step');
+  addLog(`Roles: ${roles.join(', ')||'all'} | Stages: ${stages.join(', ')||'all'}`, 'step');
+  addLog(`Domains: ${domains.join(', ')||'all'} | Locations: ${locations.join(', ')||'all'}`, 'step');
+  addLog('Searching live: Wellfound, YC, Cutshort, Instahyre, LinkedIn…', 'step');
+
+  try {
+    const resp = await fetch('/api/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roles, stages, domains, locations })
+    });
+
+    const parsed = await resp.json();
+    if (!resp.ok) throw new Error(parsed.error || 'Search failed');
+
+    addLog('Processing results…', 'step');
+
+    currentJobs = parsed.jobs || [];
+    addLog(`Found ${currentJobs.length} tailored matches for Anmol's profile`, 'found');
+    if (parsed._usage) {
+      const u = parsed._usage;
+      const costStr = u.estCostUsd != null ? `$${Number(u.estCostUsd).toFixed(4)}` : 'n/a';
+      addLog(`Usage: ${u.prompt_tokens||0} in / ${u.completion_tokens||0} out tokens — est. cost ${costStr}`, 'step');
+    }
+    setStatus('green', `${currentJobs.length} jobs matched · Tailored to Anmol More · 15+ yrs ML/Cloud/Backend`);
+    renderJobs(currentJobs, parsed.searchSummary);
+
+  } catch(err) {
+    setStatus('green', 'Search error — ' + err.message);
+    addLog('Error: ' + err.message, 'warn');
+    document.getElementById('resultsArea').innerHTML = `
+      <div class="empty-state">
+        <div class="icon">⚠️</div>
+        <h3>Search failed</h3>
+        <p>${escapeHtml(err.message)}</p>
+      </div>`;
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<span>⚡</span> Find Matching Jobs';
+}
+
+// ── Build Job Card HTML ───────────────────────────────────────────────────────
+function buildJobCardHtml(job, isSaved) {
+  const score = job.matchScore || 0;
+  const col = job.accentColor || (score >= 85 ? '#00D4AA' : score >= 70 ? '#5B6FFF' : '#FFB347');
+  const mSkills = (job.matchedSkills||[]).map(s=>`<span class="skill-tag match">${escapeHtml(s)}</span>`).join('');
+  const gSkills = (job.skillGaps||[]).map(s=>`<span class="skill-tag gap">${escapeHtml(s)}</span>`).join('');
+  const isSavedJob = savedJobs.find(j => j.id === job.id);
+
+  return `<div class="job-card" style="--card-accent:${col}">
+    <div class="job-card-top">
+      <div class="company-logo">${escapeHtml(job.logo||'🏢')}</div>
+      <div class="job-info">
+        <div class="job-title">${escapeHtml(job.title||'')}</div>
+        <div class="company-row">
+          <span class="company-name">${escapeHtml(job.company||'')}</span>
+          <span class="company-stage">${escapeHtml(job.stage||'')}</span>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${escapeHtml(job.companyDesc||'')}</div>
+      </div>
+      <div class="match-badge" style="background:${col}18;color:${col};border:1px solid ${col}40">
+        ${score}%
+        <span class="match-score-label">match</span>
+      </div>
+    </div>
+
+    <div class="job-meta">
+      <span class="meta-chip">📍 ${escapeHtml(job.location||'India')}</span>
+      <span class="meta-chip">🏷️ ${escapeHtml(job.sector||'')}</span>
+      <span class="meta-chip">⏱️ ${escapeHtml(job.experience||'')}</span>
+      ${job.postedDays ? `<span class="meta-chip">🕐 ${job.postedDays}d ago</span>` : ''}
+      ${job.equity ? `<span class="meta-chip" style="color:#A78BFA">💎 ${escapeHtml(job.equity)} equity</span>` : ''}
+    </div>
+
+    <div class="job-summary">${escapeHtml(job.summary||'')}</div>
+
+    <div class="why-match">
+      <strong>Why this matches Anmol</strong>
+      ${escapeHtml(job.matchReason||'')}
+    </div>
+
+    <div class="skill-tags">${mSkills}${gSkills}</div>
+
+    <div class="job-card-bottom">
+      <div class="salary-tag">${escapeHtml(job.salary||'')}</div>
+      <div class="btn-group">
+        <button class="save-btn" data-saveid="${job.id}" onclick="toggleSave(${job.id})">${isSavedJob ? '🔖 Saved' : '🔖 Save'}</button>
+        <button class="apply-btn" onclick="window.open('${escapeHtml(job.applyUrl||'https://wellfound.com')}','_blank')">Apply →</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Render Jobs ───────────────────────────────────────────────────────────────
+function renderJobs(jobs, summary) {
+  const area = document.getElementById('resultsArea');
+  if (!jobs || !jobs.length) {
+    area.innerHTML = `<div class="empty-state"><div class="icon">😶</div><h3>No matches found</h3><p>Try adjusting your filters.</p></div>`;
+    return;
+  }
+  jobs.sort((a,b) => (b.matchScore||0)-(a.matchScore||0));
+
+  let html = `<div class="results-header">
+    <span class="results-count">${jobs.length} tailored matches</span>
+    <span class="results-summary">${escapeHtml(summary||'')}</span>
+  </div><div class="jobs-grid">`;
+
+  for (const job of jobs) html += buildJobCardHtml(job, false);
+  html += '</div>';
+  area.innerHTML = html;
+}
+</script>
+</body>
+</html>
